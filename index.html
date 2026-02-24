@@ -6,54 +6,58 @@
 <body>
     <h2>Klik tombol di bawah untuk kirim lokasi ke saya</h2>
     <button onclick="getLocation()">Bagikan Lokasi Saya</button>
-    
     <p id="display"></p>
 
-<script type="module">
-  // 1. Import library Firebase
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-  // 2. Konfigurasi Firebase kamu
-  const firebaseConfig = {
-    apiKey: "AIzaSyDduehtEZ1LZY5deabAnSzH5eBDQUMb9kQ",
-    authDomain: "aplikasi-pelacak-5ae31.firebaseapp.com",
-    databaseURL: "https://aplikasi-pelacak-5ae31-default-rtdb.asia-south1.firebasedatabase.app",
-    projectId: "aplikasi-pelacak-5ae31",
-    storageBucket: "aplikasi-pelacak-5ae31.firebasestorage.app",
-    messagingSenderId: "86583141131",
-    appId: "1:86583141131:web:6e795b2228da1c32a6780e",
-    measurementId: "G-N0ZB78G5J0"
-  };
+        const firebaseConfig = {
+            apiKey: "AIzaSyDduehtEZ1LZY5deabAnSzH5eBDQUMb9kQ",
+            authDomain: "aplikasi-pelacak-5ae31.firebaseapp.com",
+            databaseURL: "https://aplikasi-pelacak-5ae31-default-rtdb.asia-south1.firebasedatabase.app",
+            projectId: "aplikasi-pelacak-5ae31",
+            storageBucket: "aplikasi-pelacak-5ae31.firebasestorage.app",
+            messagingSenderId: "86583141131",
+            appId: "1:86583141131:web:6e795b2228da1c32a6780e"
+        };
 
-  // 3. Inisialisasi Firebase
-  const app = initializeApp(firebaseConfig);
-  const database = getDatabase(app);
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
 
-  // 4. Fungsi Ambil Lokasi (Fungsi ini harus nempel ke tombol)
-  window.getLocation = function() {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(showPosition);
-    } else {
-      alert("Geolocation tidak didukung oleh browser ini.");
-    }
-  }
+        window.getLocation = function() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(sendData);
+            } else {
+                alert("Geolocation tidak didukung.");
+            }
+        }
 
-  function showPosition(position) {
-    const lat = position.coords.latitude;
-    const lon = position.coords.longitude;
-    
-    // Tampilkan di layar
-    document.getElementById("display").innerHTML = 
-      "Lokasi ditemukan!<br>Lat: " + lat + "<br>Lon: " + lon;
+        function sendData(position) {
+            const lat = position.coords.latitude;
+            const lon = position.coords.longitude;
+            const nomorWA = "6283166311396"; // <--- GANTI DENGAN NOMOR WA KAMU (AWALI 62)
 
-    // 5. SIMPAN KE FIREBASE
-    set(ref(database, 'lokasi/user1'), {
-      latitude: lat,
-      longitude: lon,
-      timestamp: new Date().getTime()
-    }).then(() => {
-      alert("Lokasi berhasil dikirim ke Firebase!");
-    });
-  }
-</script>
+            document.getElementById("display").innerHTML = "Memproses lokasi...";
+
+            // A. SIMPAN KE FIREBASE
+            set(ref(database, 'lokasi/user1'), {
+                latitude: lat,
+                longitude: lon,
+                timestamp: new Date().getTime()
+            });
+
+            // B. SIMPAN KE PHP (MySQL)
+            fetch('simpan.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: `lat=${lat}&lon=${lon}`
+            });
+
+            // C. KIRIM KE WHATSAPP
+            const pesan = `Lokasi Terdeteksi!\nLatitude: ${lat}\nLongitude: ${lon}\nCek di Peta: https://www.google.com/maps?q=${lat},${lon}`;
+            window.open(`https://wa.me/${nomorWA}?text=${encodeURIComponent(pesan)}`, '_blank');
+        }
+    </script>
+</body>
+</html>
