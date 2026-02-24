@@ -9,24 +9,51 @@
     
     <p id="display"></p>
 
-    <script>
-    function getLocation() {
-        if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(showPosition);
-        } else { 
-            alert("Geolocation tidak didukung oleh browser ini.");
-        }
-    }
+<script type="module">
+  // 1. Import library Firebase
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
-    function showPosition(position) {
-        const lat = position.coords.latitude;
-        const lon = position.coords.longitude;
-        document.getElementById("display").innerHTML = 
-        "Lokasi ditemukan!<br>Latitude: " + lat + "<br>Longitude: " + lon +
-        "<br><a href='https://www.google.com/maps?q=" + lat + "," + lon + "' target='_blank'>Lihat di Google Maps</a>";
-        
-        // Di sini Anda bisa menambahkan kode untuk mengirim data lat/lon ke database Anda
+  // 2. Konfigurasi Firebase kamu
+  const firebaseConfig = {
+    apiKey: "AIzaSyDduehtEZ1LZY5deabAnSzH5eBDQUMb9kQ",
+    authDomain: "aplikasi-pelacak-5ae31.firebaseapp.com",
+    databaseURL: "https://aplikasi-pelacak-5ae31-default-rtdb.asia-south1.firebasedatabase.app",
+    projectId: "aplikasi-pelacak-5ae31",
+    storageBucket: "aplikasi-pelacak-5ae31.firebasestorage.app",
+    messagingSenderId: "86583141131",
+    appId: "1:86583141131:web:6e795b2228da1c32a6780e",
+    measurementId: "G-N0ZB78G5J0"
+  };
+
+  // 3. Inisialisasi Firebase
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+
+  // 4. Fungsi Ambil Lokasi (Fungsi ini harus nempel ke tombol)
+  window.getLocation = function() {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(showPosition);
+    } else {
+      alert("Geolocation tidak didukung oleh browser ini.");
     }
-    </script>
-</body>
-</html>
+  }
+
+  function showPosition(position) {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+    
+    // Tampilkan di layar
+    document.getElementById("display").innerHTML = 
+      "Lokasi ditemukan!<br>Lat: " + lat + "<br>Lon: " + lon;
+
+    // 5. SIMPAN KE FIREBASE
+    set(ref(database, 'lokasi/user1'), {
+      latitude: lat,
+      longitude: lon,
+      timestamp: new Date().getTime()
+    }).then(() => {
+      alert("Lokasi berhasil dikirim ke Firebase!");
+    });
+  }
+</script>
